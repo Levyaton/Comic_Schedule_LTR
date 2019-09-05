@@ -1,18 +1,36 @@
 package com.example.comicscheduleltr
 
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.Base64
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
-import java.io.FileWriter
+import java.lang.Exception
+import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlinx.coroutines.*
+import java.io.IOException
+import kotlin.system.measureTimeMillis
+import android.graphics.BitmapFactory
+import android.R.attr.src
+import android.R.attr.voiceLanguage
+import androidx.appcompat.widget.LinearLayoutCompat
+import java.io.ByteArrayInputStream
+import java.net.HttpURLConnection
+import androidx.core.app.ComponentActivity
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import java.io.ByteArrayOutputStream
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,19 +47,20 @@ class MainActivity : AppCompatActivity() {
         //proccessComics(getWeekDate(true))
         //proccessComics(getWeekDate(true))
         //testOldDate()
-        dbUpdater()
+        setContentView(R.layout.waiting_layout)
+        val time = measureTimeMillis {
+            dbUpdater()
+        }
         Log.d("Comics Updated", "Done")
+        Log.d("Num of minutes operation took to execute", (time/60000).toString())
         datePicker()
     }
 
 
     private fun datePicker() {
-        val linLay: LinearLayout = LinearLayout(this)
-
-        linLay.orientation = LinearLayout.VERTICAL
-        linLay.gravity = Gravity.CENTER
-
-        val tButton: Button = Button(this)
+        setContentView(R.layout.date_picker_layout)
+        //val lay = findViewById<LinearLayoutCompat>(R.id.dp)
+        val tButton: Button = findViewById(R.id.TW)
         val tButtonText: String = "This weeks comics"
         tButton.text = tButtonText
         tButton.setOnClickListener {
@@ -50,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             this.startActivity(intent)
         }
 
-        val nButton: Button = Button(this)
+        val nButton: Button = findViewById(R.id.NW)
         val nButtonText: String = "Next weeks comics"
         nButton.text = nButtonText
         nButton.setOnClickListener {
@@ -58,11 +77,28 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("date", getWeekDate(false))
             this.startActivity(intent)
         }
+        val reloadButton: Button = findViewById(R.id.RL)
+        reloadButton.setOnClickListener {
+            //setContentView(R.layout.waiting_layout)
+            val dh: DatabaseHandler = DatabaseHandler(this)
+            val thisWeek = getWeekDate(true)
+            val nextWeek = getWeekDate(false)
+            for(comic in dh.viewComics()){
+                    dh.deleteComic(comic)
+                    File(this.filesDir,comic.title + ".json").delete()
+                    Log.d("Deleted", comic.title)
+            }
+            proccessComics(getWeekDate(true))
+            proccessComics(getWeekDate(false))
+            Log.d("Reloading comics", "Finished")
+            //setContentView(R.layout.date_picker_layout)
+        }
+        //setContentView(lay)
 
-        linLay.addView(tButton)
-        linLay.addView(nButton)
-        setContentView(linLay)
     }
+
+
+
 
     private fun dbUpdater(){
         val dh: DatabaseHandler = DatabaseHandler(this)
@@ -145,7 +181,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("comic title", comic.title)
             val gson = Gson()
             val Jcomic: JsonObject = JsonObject()
-            var jsonString:String = gson.toJson(comic.toJComic())
+            var jsonString:String = gson.toJson(comic.toJComic(getCovers(comic.coverLinks)))
             val file: File = File(this.filesDir.path +"/" + comic.title + ".json")
             //file.mkdir()
             //file.mkdirs()
@@ -181,5 +217,76 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun getCovers(coverLinks: ArrayList<String>): ArrayList<String> {
+        val covers: ArrayList<String> = arrayListOf()
+        var mainCover: Bitmap? = null
+        for(cover in coverLinks){
+            var ba: String? = null
+            while (true){
+                try{
+                    runBlocking {
+                        Log.d("Loading img", "Started")
+                        ba = loadImage(cover).await()
+                        Log.d("Loading img", "Ended")
+                    }
+                    break
+                }
+                catch (e: Exception){
+                    Log.d("exception was", e.toString())
+                    Log.d("Retrying", cover)
+                    Thread.sleep(50)
+                }
+            }
+            covers.add(ba!!)
+        }
+        return covers
+    }
+
+    private suspend fun loadImage(url: String): Deferred<String> = GlobalScope.async {
+            val image: String = async {
+                  val url = URL(url)
+                val img = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                val result = getStringFromBitmap(img)
+                result
+
+            }.await()
+
+            return@async image
+    }
+
+
+    private fun encodeByteArr(covers: List<String>): String{
+        var coded = ""
+        for(cover in covers){
+            coded += "$cover[*]"
+        }
+        coded = coded.substring(0,coded.length - 3)
+        return coded
+    }
+
+    @Throws(IOException::class)
+    private fun getByteArray(url: String): ByteArray {
+        val url = URL(url)
+        val connection = url.openConnection() as HttpURLConnection
+        connection.setDoInput(true)
+        connection.connect()
+        val input = connection.getInputStream()
+        val ba =input.readBytes()
+        input.close()
+        return ba
+    }
+
+    private fun getStringFromBitmap(bitmapPicture: Bitmap): String {
+        val COMPRESSION_QUALITY = 100
+        val encodedImage: String
+        val byteArrayBitmapStream = ByteArrayOutputStream()
+        bitmapPicture.compress(
+            Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
+            byteArrayBitmapStream
+        )
+        val b = byteArrayBitmapStream.toByteArray()
+        encodedImage = Base64.encodeToString(b,Base64.DEFAULT)
+        return encodedImage
+    }
 
 }

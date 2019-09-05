@@ -15,7 +15,7 @@ class PublishersActivity: AppCompatActivity()  {
         getPublishers(intent.getStringExtra("date") as String)
     }
 
-    private fun setLayout(publishers: ArrayList<String>){
+    private fun setLayout(publishers: ArrayList<String>, date:String){
 
         val scroll: ScrollView = ScrollView(this)
         val linLay: LinearLayout = LinearLayout(this)
@@ -31,6 +31,7 @@ class PublishersActivity: AppCompatActivity()  {
             button.setOnClickListener{
                 val intent = Intent(this, TitlesActivity::class.java)
                 intent.putExtra("publisher",publisher)
+                intent.putExtra("date", date)
                 this.startActivity(intent)
             }
             linLay.addView(button)
@@ -52,7 +53,7 @@ class PublishersActivity: AppCompatActivity()  {
         }
         //Log.d("comics in pub", publishers.size.toString())
         publishers.sort()
-        setLayout(publishers)
+        setLayout(publishers, date)
     }
 
 }

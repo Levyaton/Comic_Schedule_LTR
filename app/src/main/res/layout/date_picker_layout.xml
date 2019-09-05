@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <Button
+        android:id="@+id/TW"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="146dp"
+        android:layout_marginTop="133dp"
+        android:layout_marginEnd="169dp"
+        android:layout_marginBottom="92dp"
+        android:text="@string/this_week"
+        app:layout_constraintBottom_toTopOf="@+id/NW"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/NW"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="146dp"
+        android:layout_marginTop="92dp"
+        android:layout_marginEnd="165dp"
+        android:text="@string/next_week"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/TW" />
+
+    <Button
+        android:id="@+id/RL"
+        android:layout_width="wrap_content"
+        android:layout_height="55dp"
+        android:layout_marginTop="187dp"
+        android:layout_marginBottom="160dp"
+        android:text="@string/reload_comic_books_this_will_take_about_15_minutes"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/NW" />
+</androidx.constraintlayout.widget.ConstraintLayout>

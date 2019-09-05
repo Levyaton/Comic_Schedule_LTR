@@ -12,15 +12,19 @@ class JComic{
     var date: String? = null
     var coverLinks: List<String>? = null
     var description: String? = null
+    var covers: List<String>? = null
+    
+    
 
     constructor() : super() {}
 
-    constructor(title: String, publisher: String, date: String, coverLinks: List<String>, description: String) : super() {
+    constructor(title: String, publisher: String, date: String, coverLinks: List<String>, description: String, covers: List<String>?) : super() {
         this.title = title
         this.publisher = publisher
         this.date = date
         this.coverLinks = coverLinks
         this.description = description
+        this.covers = covers
     }
 
 
@@ -82,7 +86,7 @@ class Comic {
         description = desc
     }
 
-    fun toJComic(): JComic{
-        return JComic(title, publisher, date,coverLinks, description)
+    fun toJComic(covers: List<String>?): JComic{
+        return JComic(title, publisher, date,coverLinks, description,covers)
     }
 }

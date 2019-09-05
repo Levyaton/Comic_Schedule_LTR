@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/WaitingText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/RED"
+        android:fontFamily="@font/aclonica"
+        android:gravity="center"
+        android:text="@string/your_comic_books_are_loading_this_will_take_about_10_15_minutes_please_wait"
+        android:textAlignment="center"
+        android:textColor="@color/WHITE"
+        android:textSize="30sp" />
+</LinearLayout>

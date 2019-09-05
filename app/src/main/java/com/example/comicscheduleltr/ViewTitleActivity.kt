@@ -20,6 +20,7 @@ import androidx.core.app.ComponentActivity
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.util.Base64
 import android.util.Log
 import com.google.gson.stream.JsonReader
 import java.io.BufferedReader
@@ -49,11 +50,8 @@ class ViewTitleActivity: AppCompatActivity() {
         val relativeLayout: RelativeLayout = RelativeLayout(this)
         var mainImg: ImageView = ImageView(this)
         val covers: ArrayList<Bitmap> = arrayListOf()
-       var bitmap: Bitmap? = null
-       runBlocking {
-           bitmap = loadImage(comic.coverLinks!![0]).await()
-       }
-       covers.add(bitmap!!)
+       var bitmap: Bitmap = BitmapFactory.decodeByteArray(Base64.decode(comic.covers!![0], Base64.DEFAULT), 0, Base64.decode(comic.covers!![0], Base64.DEFAULT).size)
+       //covers.add(bitmap!!)
        mainImg.setImageBitmap(bitmap)
         val linLay: LinearLayout = LinearLayout(this)
         linLay.orientation = LinearLayout.VERTICAL
@@ -65,13 +63,10 @@ class ViewTitleActivity: AppCompatActivity() {
         imageGallery.orientation = TableRow.HORIZONTAL
         imageGallery.gravity = Gravity.CENTER
 
-        for (variant in comic.coverLinks!!) {
+        for (variant in comic.covers!!) {
             var image: ImageView = ImageView(this)
-            var bp: Bitmap? = null
-            runBlocking {
-                bp = loadImage(variant).await()
-
-            }
+            var bp: Bitmap = BitmapFactory.decodeByteArray(Base64.decode(variant, Base64.DEFAULT), 0, Base64.decode(variant, Base64.DEFAULT).size)
+           
             image.setImageBitmap(bp)
             covers.add(bp!!)
             image.setPadding(20, 20, 20, 20)
@@ -93,32 +88,6 @@ class ViewTitleActivity: AppCompatActivity() {
     }
 
 
-    
-    private suspend fun loadImage(url: String): Deferred<Bitmap> = GlobalScope.async {
-        try{
-            val image: Bitmap = async {
-                val urlConnection = URL(url).openConnection() as HttpURLConnection
-                val bitmap = BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
-                urlConnection.disconnect()
-                bitmap
-            }.await()
-
-            return@async image
-        }
-        catch (e: Exception){
-            Log.d("The exception was", e.toString())
-            Log.d("The url was", url)
-            Log.d("Retrying", "Now")
-            var img: Bitmap? = null
-            runBlocking {
-               img = loadImage(url).await()
-            }
-            return@async img!!
-        }
-
-
-
-    }
-
-    
 }
+
+    
