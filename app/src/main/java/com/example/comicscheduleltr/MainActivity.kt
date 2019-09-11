@@ -6,9 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.Base64
-import android.view.Gravity
 import android.widget.Button
-import android.widget.LinearLayout
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
@@ -20,16 +18,11 @@ import kotlinx.coroutines.*
 import java.io.IOException
 import kotlin.system.measureTimeMillis
 import android.graphics.BitmapFactory
-import android.R.attr.src
-import android.R.attr.voiceLanguage
-import androidx.appcompat.widget.LinearLayoutCompat
-import java.io.ByteArrayInputStream
+import com.koushikdutta.async.future.Future
 import java.net.HttpURLConnection
-import androidx.core.app.ComponentActivity
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import com.koushikdutta.ion.Ion
 import java.io.ByteArrayOutputStream
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -226,7 +219,12 @@ class MainActivity : AppCompatActivity() {
                 try{
                     runBlocking {
                         Log.d("Loading img", "Started")
-                        ba = loadImage(cover).await()
+                        //ba = loadImage(cover).await()
+
+                        ba = async {
+                            getStringFromBitmap(Ion.with(this@MainActivity).load(cover).asBitmap().get())
+                        }.await()
+
                         Log.d("Loading img", "Ended")
                     }
                     break
@@ -241,6 +239,11 @@ class MainActivity : AppCompatActivity() {
         }
         return covers
     }
+
+
+
+
+
 
     private suspend fun loadImage(url: String): Deferred<String> = GlobalScope.async {
             val image: String = async {
@@ -288,5 +291,6 @@ class MainActivity : AppCompatActivity() {
         encodedImage = Base64.encodeToString(b,Base64.DEFAULT)
         return encodedImage
     }
+
 
 }
