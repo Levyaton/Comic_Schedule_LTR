@@ -31,7 +31,9 @@ import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 
 
 
-
+/**
+ * Displays every title by a given publisher for a given date
+ */
 class TitlesActivity: AppCompatActivity() {
 
     override fun onStart() {
@@ -39,21 +41,34 @@ class TitlesActivity: AppCompatActivity() {
         getTitles(intent.getStringExtra("publisher") as String)
     }
 
+    /**
+     * Gets the titles from database
+     */
     private fun getTitles(publisher: String){
         val titles: ArrayList<String> = arrayListOf()
         val dh: DatabaseHandler = DatabaseHandler(this)
         for(comic in dh.viewComics()){
             Log.d("ViewTitleActivity is", comic.title)
             Log.d("Publisher is", comic.publisher)
-            if(comic.publisher == publisher && comic.date == intent.getStringExtra("date") as String){
-                titles.add(comic.title)
+            if(titles.size > 0){
+                if(titles.last() != comic.title && comic.publisher == publisher && comic.date == intent.getStringExtra("date") as String){
+                    titles.add(comic.title)
+                }
+            }else{
+                if(comic.publisher == publisher && comic.date == intent.getStringExtra("date") as String) {
+                    titles.add(comic.title)
+                }
             }
+
         }
         //Log.d("comics in pub", publishers.size.toString())
         titles.sort()
         setLayout(titles)
     }
 
+    /**
+     * Sets the layout
+     */
     private fun setLayout(titles: ArrayList<String>){
 
         val scroll: ScrollView = ScrollView(this)
@@ -65,32 +80,55 @@ class TitlesActivity: AppCompatActivity() {
             LinearLayout.LayoutParams.WRAP_CONTENT)
         Log.d("Number of titles", titles.size.toString())
         for(title in titles){
-            val comic: JComic = getComic(title)
-            //Log.d("byteArr is", comic.covers?.get(0))
-            var image: Bitmap = BitmapFactory.decodeByteArray(Base64.decode(comic.covers!![0], Base64.DEFAULT), 0, Base64.decode(comic.covers!![0], Base64.DEFAULT).size)
-            image = Bitmap.createScaledBitmap(image!!,(image.width *0.8).toInt(), (image.height *0.8).toInt(), true)
-            val button: Button = Button(this)
-            button.text = title
-            button.setOnClickListener{
-                val intent = Intent(this, ViewTitleActivity::class.java)
-                intent.putExtra("title",title)
-                this.startActivity(intent)
-            }
-            linLay.addView(button)
-            val imageView: ImageView = ImageView(this)
-
-            imageView.setImageBitmap(image)
-            imageView.setOnClickListener{
-                val intent = Intent(this, ViewTitleActivity::class.java)
-                intent.putExtra("title",title)
-                this.startActivity(intent)
-            }
-            linLay.addView(imageView)
+            setTitle(title,linLay)
         }
         scroll.addView(linLay)
         setContentView(scroll)
     }
 
+    /**
+     * Sets the values of a button for a given title
+     */
+    private fun setTitleButton(button: Button, title: String){
+        button.text = title
+        button.setOnClickListener{
+            val intent = Intent(this, ViewTitleActivity::class.java)
+            intent.putExtra("title",title)
+            this.startActivity(intent)
+        }
+    }
+
+    /**
+     * Sets the values of an image for a given title
+     */
+    private fun setTitleImage(imageView: ImageView, image: Bitmap, title: String){
+        imageView.setImageBitmap(image)
+        imageView.setOnClickListener{
+            val intent = Intent(this, ViewTitleActivity::class.java)
+            intent.putExtra("title",title)
+            this.startActivity(intent)
+        }
+    }
+
+    /**
+     * Sets up a title
+     */
+    private fun setTitle(title: String,linLay: LinearLayout){
+        val comic: JComic = getComic(title)
+        //Log.d("byteArr is", comic.covers?.get(0))
+        var image: Bitmap = BitmapFactory.decodeByteArray(Base64.decode(comic.covers!![0], Base64.DEFAULT), 0, Base64.decode(comic.covers!![0], Base64.DEFAULT).size)
+        image = Bitmap.createScaledBitmap(image!!,(image.width *0.8).toInt(), (image.height *0.8).toInt(), true)
+        val button: Button = Button(this)
+        setTitleButton(button,title)
+        linLay.addView(button)
+        val imageView: ImageView = ImageView(this)
+        setTitleImage(imageView,image,title)
+        linLay.addView(imageView)
+    }
+
+    /**
+     * Gets a JComic from memory based on the given title
+     */
     private fun getComic(title: String): JComic{
         val gson = Gson()
         val modTitle = "/$title.json"

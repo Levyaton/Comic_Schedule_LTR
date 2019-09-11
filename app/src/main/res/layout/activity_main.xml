@@ -7,9 +7,16 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:visibility="visible"
+        android:background="@color/RED"
+        android:fontFamily="@font/aclonica"
+        android:gravity="center"
+        android:text="@string/your_comic_books_are_loading_this_will_take_about_10_15_minutes_please_wait"
+        android:textAlignment="center"
+        android:textColor="@color/WHITE"
+        android:textSize="30sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

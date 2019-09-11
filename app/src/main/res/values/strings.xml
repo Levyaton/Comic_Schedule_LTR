@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">Comic Schedule LTR</string>
     <string name="this_week">This Week</string>
+    <string name="this_week_loaded">False</string>
+    <string name="next_week_loaded">False</string>
     <string name="reload_comic_books_this_will_take_about_15_minutes">Reload Comic Books (This will take about 15 minutes)</string>
     <string name="next_week">Next Week</string>
     <string name="your_comic_books_are_loading_this_will_take_about_10_15_minutes_please_wait">Your comic books are loading, this will take about 10-15 minutes, please wait</string>
+    <string name="activate_online_mode">Activate online mode</string>
 </resources>

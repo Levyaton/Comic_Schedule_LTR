@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.google.gson.JsonObject
 
-
+/**
+ * A gson compatible version of a Comic object
+ */
 class JComic{
     
     var title: String? = null
@@ -30,6 +32,9 @@ class JComic{
 
 }
 
+/**
+ * An object that stores information about a comic
+ */
 class Comic {
 
     lateinit var title: String
@@ -58,10 +63,16 @@ class Comic {
         coverLinks = getCoversLinks
     }
 
+    /**
+     * Adds another cover link to coverLinks
+     */
     fun addCoverLink(cover: String){
         coverLinks.add(cover)
     }
 
+    /**
+     * Returns covers as an ArrayList of Bitmaps
+     */
     fun getBitmapCovers(): ArrayList<Bitmap>{
         val bitmapCovers: ArrayList<Bitmap> = arrayListOf()
         for(cover in this!!.covers!!){
@@ -70,7 +81,9 @@ class Comic {
         return bitmapCovers
     }
 
-
+    /**
+     * Decodes a coded ByteArray String (Outdated), provided the key is replacing [*] with a new line
+     */
     private fun decodeByteArray(code: String):  ArrayList<ByteArray>{
         val covers: ArrayList<ByteArray> = arrayListOf()
 
@@ -82,10 +95,9 @@ class Comic {
         return covers
     }
 
-    fun setComicDescription(desc: String){
-        description = desc
-    }
-
+    /**
+     * Converts the Comic object to a JComic
+     */
     fun toJComic(covers: List<String>?): JComic{
         return JComic(title, publisher, date,coverLinks, description,covers)
     }

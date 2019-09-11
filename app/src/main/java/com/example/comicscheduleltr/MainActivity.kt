@@ -1,5 +1,6 @@
 package com.example.comicscheduleltr
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
@@ -18,29 +19,36 @@ import kotlinx.coroutines.*
 import java.io.IOException
 import kotlin.system.measureTimeMillis
 import android.graphics.BitmapFactory
+import android.graphics.Color.RED
+import android.graphics.Color.WHITE
+import android.graphics.LinearGradient
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.koushikdutta.async.future.Future
 import java.net.HttpURLConnection
 import com.koushikdutta.ion.Ion
 import java.io.ByteArrayOutputStream
+import java.lang.reflect.Array
 
 
-
+/**
+ * TO DO
+ */
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
     }
 
 
+    var useWebView: Boolean = false
 
     override fun onStart() {
         super.onStart()
         //proccessComics(getWeekDate(true))
         //proccessComics(getWeekDate(true))
         //testOldDate()
-        setContentView(R.layout.waiting_layout)
         val time = measureTimeMillis {
             dbUpdater()
         }
@@ -49,51 +57,166 @@ class MainActivity : AppCompatActivity() {
         datePicker()
     }
 
+    /**
+     *  Let's the user choose which weeks comics they would like to view
+     */
 
     private fun datePicker() {
         setContentView(R.layout.date_picker_layout)
         //val lay = findViewById<LinearLayoutCompat>(R.id.dp)
-        val tButton: Button = findViewById(R.id.TW)
-        val tButtonText: String = "This weeks comics"
-        tButton.text = tButtonText
-        tButton.setOnClickListener {
-            val intent = Intent(this, PublishersActivity::class.java)
-            intent.putExtra("date", getWeekDate(true))
-            this.startActivity(intent)
-        }
-
-        val nButton: Button = findViewById(R.id.NW)
-        val nButtonText: String = "Next weeks comics"
-        nButton.text = nButtonText
-        nButton.setOnClickListener {
-            val intent = Intent(this, PublishersActivity::class.java)
-            intent.putExtra("date", getWeekDate(false))
-            this.startActivity(intent)
-        }
-        val reloadButton: Button = findViewById(R.id.RL)
-        reloadButton.setOnClickListener {
-            //setContentView(R.layout.waiting_layout)
-            val dh: DatabaseHandler = DatabaseHandler(this)
-            val thisWeek = getWeekDate(true)
-            val nextWeek = getWeekDate(false)
-            for(comic in dh.viewComics()){
-                    dh.deleteComic(comic)
-                    File(this.filesDir,comic.title + ".json").delete()
-                    Log.d("Deleted", comic.title)
-            }
-            proccessComics(getWeekDate(true))
-            proccessComics(getWeekDate(false))
-            Log.d("Reloading comics", "Finished")
-            //setContentView(R.layout.date_picker_layout)
-        }
+        setThisWeekButton()
+        setNextWeekButton()
+        setReloadButton()
+        setWebViewButton()
         //setContentView(lay)
 
     }
 
+    /**
+     * Sets up a waiting screen content view
+     */
+    private fun setWaitingScreen(){
+        val waitingText = TextView(this)
+        val text: String = "Your comic books are loading, this will take about 10 - 15 minutes, please wait"
+        waitingText.text = text
+        waitingText.setTextColor(WHITE)
+        val linLay = LinearLayout(this)
+        linLay.setBackgroundColor(RED)
+        linLay.addView(waitingText)
+        setContentView(linLay)
+    }
 
+    /**
+     * Sets up a web view button
+     */
+    private fun setWebViewButton(){
+        val webButton: Button = findViewById(R.id.WebViewButton)
+        webButton.setOnClickListener {
+            var text = ""
+            if(webButton.text ==  "Activate offline mode"){
+                text = "Activate online mode"
+                useWebView = false
+            }else{
+                text = "Activate offline mode"
+                useWebView = true
+            }
+            webButton.text = text
+        //Log.d("Button", "WebView Activated")
+        }
+    }
 
+    /**
+     * Sets up this Week Button
+     */
+    private fun setThisWeekButton(){
+        val tButton: Button = findViewById(R.id.TW)
+        val tButtonText: String = "This weeks comics"
+        tButton.text = tButtonText
+        tButton.setOnClickListener {
+            if(!useWebView){
+                val intent = Intent(this, PublishersActivity::class.java)
+                intent.putExtra("date", getWeekDate(true))
+                this.startActivity(intent)
+            }else{
+                val intent = Intent(this, WebViewActivity::class.java)
+                intent.putExtra("url", linkMaker(getWeekDate(true)))
+                this.startActivity(intent)
+            }
 
+        }
+    }
+
+    /**
+     * Sets up next week button
+     */
+    private fun setNextWeekButton(){
+        val nButton: Button = findViewById(R.id.NW)
+        val nButtonText: String = "Next weeks comics"
+        nButton.text = nButtonText
+        nButton.setOnClickListener {
+            if(!useWebView){
+                val intent = Intent(this, PublishersActivity::class.java)
+                intent.putExtra("date", getWeekDate(false))
+                this.startActivity(intent)
+            }else{
+                val intent = Intent(this, WebViewActivity::class.java)
+                intent.putExtra("url", linkMaker(getWeekDate(false)))
+                this.startActivity(intent)
+            }
+        }
+    }
+
+    /**
+     * Sets up reload button
+     */
+    private fun setReloadButton(){
+        val reloadButton: Button = findViewById(R.id.RL)
+        reloadButton.setOnClickListener {
+            Log.d("Started blocking and set waiting layout as content view","Started")
+            runBlocking {
+                val dh: DatabaseHandler = DatabaseHandler(this@MainActivity)
+                val thisWeek = getWeekDate(true)
+                val nextWeek = getWeekDate(false)
+                for (comic in dh.viewComics()) {
+                    dh.deleteComic(comic)
+                    File(this@MainActivity.filesDir, comic.title + ".json").delete()
+                    Log.d("Deleted", comic.title)
+                }
+                proccessComics(getWeekDate(true))
+                proccessComics(getWeekDate(false))
+                Log.d("Reloading comics", "Finished")
+            }
+            Log.d("Started blocking and set waiting layout as content view","Finished, setting date picker layout as content view")
+            setContentView(R.layout.date_picker_layout)
+            Log.d("Setting date picker layout as content view", "Finished")
+
+        }
+    }
+
+    /**
+     * Updates the database
+     */
     private fun dbUpdater(){
+        val weekCheck = weekCheck()
+        updateWeek(weekCheck[0],true,R.string.this_week)
+        updateWeek(weekCheck[1],false,R.string.next_week)
+    }
+
+    /**
+     * Updates a given week in database
+     */
+    private fun updateWeek(weekExists: Boolean, thisWeek: Boolean, week: Int){
+        val sharedPref = getPreferences(Context.MODE_PRIVATE) ?: return
+        val state = sharedPref.getString(getString(week),resources.getString(week))
+        if(weekExists){
+            if(state == "False"){
+                proccessComics(getWeekDate(thisWeek))
+                updateSP("True", week)
+            }
+        }
+        else{
+            updateSP("False", week)
+            proccessComics(getWeekDate(thisWeek))
+            updateSP("True", week)
+        }
+    }
+
+
+    /**
+     * Updates Shared Preferences
+     */
+    private fun updateSP(text: String, week: Int){
+        val sharedPref = getPreferences(Context.MODE_PRIVATE) ?: return
+        with (sharedPref.edit()) {
+            putString(getString(week), text)
+            commit()
+        }
+    }
+
+    /**
+     * Checks if a week contains the correct dates/deletes old ones
+     */
+    private fun weekCheck(): ArrayList<Boolean>{
         val dh: DatabaseHandler = DatabaseHandler(this)
         val thisWeek = getWeekDate(true)
         val nextWeek = getWeekDate(false)
@@ -112,14 +235,12 @@ class MainActivity : AppCompatActivity() {
                 foundNextWeek = true
             }
         }
-        if(!foundThisWeek){
-            proccessComics(getWeekDate(true))
-        }
-        if(!foundNextWeek){
-            proccessComics(getWeekDate(false))
-        }
+        return arrayListOf(foundThisWeek,foundNextWeek)
     }
 
+    /**
+     * Generates the date of a given week (this week or next week)
+     */
     private fun getWeekDate(thisWeek: Boolean): String{
         val cal: Calendar = Calendar.getInstance()
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
@@ -131,6 +252,9 @@ class MainActivity : AppCompatActivity() {
         return sdf.format(date)
     }
 
+    /**
+     * Generates a link based on the given date String
+     */
     private fun linkMaker(date: String): String{
         val intYear = Calendar.getInstance().get(Calendar.YEAR)
         val intMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
@@ -149,7 +273,9 @@ class MainActivity : AppCompatActivity() {
         return link
     }
 
-
+    /**
+     * Gets and Stores comics for a given date
+     */
     private fun proccessComics(date: String){
         val cg = ComicGenerator(this,date,linkMaker(date))
         val comics: ArrayList<Comic> = cg.comcis
@@ -158,7 +284,9 @@ class MainActivity : AppCompatActivity() {
         generateJsonComics(comics)
     }
 
-
+    /**
+     * A function for testing the code that gets and stores comics from an old date
+     */
     //for testing purposes
     private fun testOldDate(){
         val cg = ComicGenerator(this,"2019-08-23",linkMaker("2019-08-23"))
@@ -168,6 +296,9 @@ class MainActivity : AppCompatActivity() {
         generateDatabase(comics)
     }
 
+    /**
+     * Stores comics in .json files
+     */
     private fun generateJsonComics(comics: ArrayList<Comic>){
         
         for(comic in comics){
@@ -182,7 +313,10 @@ class MainActivity : AppCompatActivity() {
             
         }
     }
-    
+
+    /**
+     * Creates/updates the database with new comics
+     */
     private fun generateDatabase(comics: ArrayList<Comic>){
         Log.d("The number should be", comics.size.toString())
         //val comics: ArrayList<ComicDatabase> = arrayListOf()
@@ -193,23 +327,15 @@ class MainActivity : AppCompatActivity() {
         for(comic in comics){
             dh.addComic(Comic_Database(idCounter,comic.title,comic.publisher,comic.date))
             idCounter++
-           // val db: SugarRecord = ComicDatabase(comic.date,comic.publisher,comic.title)
-            //val db = ComicDatabase()
-            //db.id = null
-
-            //SugarRecord.save(db)
-            //val db: SQLiteDatabase = SugarDb(this).
-            //SugarRecord.save(cd)
-            //comics.add(cd)
         }
-        //SugarRecord.saveInTx(comics)
-        //Log.d("comic number in database", comics.size.toString())
-
         val cms = dh.viewComics()
         Log.d("comic number in database",cms.size.toString())
 
     }
 
+    /**
+     * Gets the covers from their links, using Ion
+     */
     private fun getCovers(coverLinks: ArrayList<String>): ArrayList<String> {
         val covers: ArrayList<String> = arrayListOf()
         var mainCover: Bitmap? = null
@@ -220,11 +346,9 @@ class MainActivity : AppCompatActivity() {
                     runBlocking {
                         Log.d("Loading img", "Started")
                         //ba = loadImage(cover).await()
-
                         ba = async {
                             getStringFromBitmap(Ion.with(this@MainActivity).load(cover).asBitmap().get())
                         }.await()
-
                         Log.d("Loading img", "Ended")
                     }
                     break
@@ -244,7 +368,9 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
+    /**
+     * Loads an image from a url as a String (Deferred String), without Ion
+     */
     private suspend fun loadImage(url: String): Deferred<String> = GlobalScope.async {
             val image: String = async {
                   val url = URL(url)
@@ -257,28 +383,9 @@ class MainActivity : AppCompatActivity() {
             return@async image
     }
 
-
-    private fun encodeByteArr(covers: List<String>): String{
-        var coded = ""
-        for(cover in covers){
-            coded += "$cover[*]"
-        }
-        coded = coded.substring(0,coded.length - 3)
-        return coded
-    }
-
-    @Throws(IOException::class)
-    private fun getByteArray(url: String): ByteArray {
-        val url = URL(url)
-        val connection = url.openConnection() as HttpURLConnection
-        connection.setDoInput(true)
-        connection.connect()
-        val input = connection.getInputStream()
-        val ba =input.readBytes()
-        input.close()
-        return ba
-    }
-
+    /**
+     * Converts a Bitmap to a String
+     */
     private fun getStringFromBitmap(bitmapPicture: Bitmap): String {
         val COMPRESSION_QUALITY = 100
         val encodedImage: String
@@ -292,5 +399,11 @@ class MainActivity : AppCompatActivity() {
         return encodedImage
     }
 
-
+    /**
+     * Resets the useWebView variable to false
+     */
+    override fun onResume() {
+        super.onResume()
+        useWebView = false
+    }
 }

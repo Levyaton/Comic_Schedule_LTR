@@ -13,12 +13,19 @@ import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 
+
+/**
+ * TO DO
+ */
 class ComicGenerator(val context: Context, val date: String, val url: String) {
 
     val comcis = getComics()
 
 
 
+    /**
+     * TO DO
+     */
     private fun getComics(): ArrayList<Comic> {
 
         var html = htmlParse()
@@ -44,6 +51,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
     }
 
 
+    /**
+     * TO DO
+     */
     private fun htmlParse(): List<String>{
         var html: List<String> = listOf()
 
@@ -61,6 +71,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         return html
     }
 
+    /**
+     * TO DO
+     */
     private suspend fun addDescriptions(comics: ArrayList<Comic>) = withContext(Dispatchers.IO) {
         // withContext waits for all children coroutines
         for (comic in comics) {
@@ -69,9 +82,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
                     try {
                         Log.d("loading description of", comic.title)
 
-                        comic.description = "Testing"
+                        //comic.description = "Testing"
 
-                        //comic.description = getDescriptions(comic.descriptionLink)
+                        comic.description = getDescriptions(comic.descriptionLink)
 
                         Log.d("Finished description of", comic.title)
                         break
@@ -85,6 +98,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         }
     }
 
+    /**
+     * TO DO
+     */
     private suspend fun getHtml(url: String): Deferred<String> = GlobalScope.async {
 
         try {
@@ -106,6 +122,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         }
     }
 
+    /**
+     * TO DO
+     */
     private fun parseHtml(html: List<String>): ArrayList<Comic> {
         var comics: ArrayList<Comic> = arrayListOf()
         var pubFound = false
@@ -131,6 +150,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         return comics.distinct() as ArrayList<Comic>
     }
 
+    /**
+     * TO DO
+     */
     private fun getComicsArray(line: String, comics: ArrayList<Comic>, currentPub: String): ArrayList<Comic>{
 
         val comics = comics
@@ -159,6 +181,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         return comics
     }
 
+    /**
+     * TO DO
+     */
     private fun titleIsValid(line: String): Boolean{
 
         val firstPoint = line.contains("<a href=")
@@ -173,6 +198,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
 
     }
 
+    /**
+     * TO DO
+     */
     private suspend fun getDescriptions(link: String): String {
         var html: List<String> = listOf()
         runBlocking {
@@ -201,6 +229,9 @@ class ComicGenerator(val context: Context, val date: String, val url: String) {
         return description
     }
 
+    /**
+     * TO DO
+     */
     private fun formatString(text: String): String {
         var newText = text.replace("<br><br>", "\n")
         newText = newText.replace("&#39;", "'")

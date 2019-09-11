@@ -8,6 +8,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import androidx.appcompat.app.AppCompatActivity
 
+/**
+ * Displays every publisher that releases a new comic in a given week
+ */
 class PublishersActivity: AppCompatActivity()  {
 
     override fun onStart() {
@@ -15,8 +18,10 @@ class PublishersActivity: AppCompatActivity()  {
         getPublishers(intent.getStringExtra("date") as String)
     }
 
+    /**
+     * Sets the layout
+     */
     private fun setLayout(publishers: ArrayList<String>, date:String){
-
         val scroll: ScrollView = ScrollView(this)
         val linLay: LinearLayout = LinearLayout(this)
         linLay.orientation = LinearLayout.VERTICAL
@@ -40,6 +45,9 @@ class PublishersActivity: AppCompatActivity()  {
         setContentView(scroll)
     }
 
+    /**
+     * Gets the publishers from database
+     */
     private fun getPublishers(date: String){
         val publishers: ArrayList<String> = arrayListOf()
         val dh: DatabaseHandler = DatabaseHandler(this)

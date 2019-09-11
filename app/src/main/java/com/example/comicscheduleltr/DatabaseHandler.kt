@@ -30,7 +30,9 @@ class DatabaseHandler(context: Context): SQLiteOpenHelper(context,DATABASE_title
     }
 
 
-   
+    /**
+     * TO DO
+     */
     fun addComic(comic: Comic_Database):Long{
         val db = this.writableDatabase
         val contentValues = ContentValues()
@@ -45,6 +47,9 @@ class DatabaseHandler(context: Context): SQLiteOpenHelper(context,DATABASE_title
         return success
     }
 
+    /**
+     * TO DO
+     */
     fun viewComics():List<Comic_Database>{
         val comics:ArrayList<Comic_Database> = ArrayList<Comic_Database>()
         val selectQuery = "SELECT  * FROM $TABLE_CONTACTS"
@@ -73,6 +78,9 @@ class DatabaseHandler(context: Context): SQLiteOpenHelper(context,DATABASE_title
         return comics
     }
 
+    /**
+     * TO DO
+     */
     fun updateComic(comic: Comic_Database):Int{
         val db = this.writableDatabase
         val contentValues = ContentValues()
@@ -87,7 +95,10 @@ class DatabaseHandler(context: Context): SQLiteOpenHelper(context,DATABASE_title
         db.close() 
         return success
     }
-  
+
+    /**
+     * TO DO
+     */
     fun deleteComic(comic: Comic_Database):Int{
         val db = this.writableDatabase
         val contentValues = ContentValues()
